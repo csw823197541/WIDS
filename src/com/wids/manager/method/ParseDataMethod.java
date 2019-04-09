@@ -393,7 +393,7 @@ public class ParseDataMethod {
             String dgCd = smartVesselContainerInfo.getDtpDnggcd(); //危险品：
             String isHeight = smartVesselContainerInfo.getIsHeight(); //是否是高箱：Y/N
             String rfFlag = smartVesselContainerInfo.getRfcfg(); //冷藏标记：Y/N
-            String overrunCd = smartVesselContainerInfo.getOvlmtcd(); //超限箱标记：Y/N
+            String overrunCd = smartVesselContainerInfo.getOvlmtcd(); //超限箱标记：O/OW/OH/OG
             String efFlag = smartVesselContainerInfo.getEffg();
             String workStatus = smartVesselContainerInfo.getWorkStatus();
             String moveStage = smartVesselContainerInfo.getMoveStage();
@@ -444,7 +444,6 @@ public class ParseDataMethod {
                         wiContainer.setRfFlag(rfFlag);
                         dgCd = !StringUtil.notBlank(dgCd) || "N".equals(dgCd) ? CWPDomain.NO : CWPDomain.YES;
                         wiContainer.setDgCd(dgCd);
-                        overrunCd = !StringUtil.notBlank(overrunCd) || "N".equals(overrunCd) ? CWPDomain.NO : CWPDomain.YES;
                         wiContainer.setOverrunCd(overrunCd);
                         isHeight = !StringUtil.notBlank(isHeight) || "N".equals(isHeight) ? CWPDomain.NO : CWPDomain.YES;
                         wiContainer.setIsHeight(isHeight);

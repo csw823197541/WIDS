@@ -773,8 +773,9 @@ public class WIOptimizer {
 
     private boolean notExchangeCnt(WIContainer cnt) {
         //危险品、冷藏箱、超限箱
-        boolean not1 = WIDomain.YES.equals(cnt.getDgCd()) || WIDomain.YES.equals(cnt.getRfFlag()) || WIDomain.YES.equals(cnt.getOverrunCd());
-        return WIDomain.NO.equals(cnt.getCwoManualLocation()) || not1;
+        boolean overrunFlag = WIDomain.OVERRUN_O.equals(cnt.getOverrunCd()) || WIDomain.OVERRUN_OW.equals(cnt.getOverrunCd());
+        boolean not1 = WIDomain.YES.equals(cnt.getDgCd()) || WIDomain.YES.equals(cnt.getRfFlag());
+        return WIDomain.NO.equals(cnt.getCwoManualLocation()) || not1 || overrunFlag;
     }
 
     private boolean conformRules(WICraneContainer wiCraneContainer, WIContainer cnt, WIData wiData) {

@@ -403,6 +403,7 @@ public class WIOptimizer {
         for (int i = 0; i < rowNoSeqList.size(); i++) {
             Integer rowNo = rowNoSeqList.get(i);
             WICraneMove firstMove = getFirstMove(rowNo, bayNo, rowNoCraneMoveMap, CWPDomain.DL_TYPE_LOAD);
+            // 能作业、没有被锁住
             if (firstMove != null && PublicMethod.canLoadState(firstMove.getWorkStatus()) && !WIDomain.YES.equals(firstMove.getCwoManualWi())) {
                 if (WIDomain.NO.equals(wiData.getWiConfiguration().getMoveOrderExchange())) { //不允许交换顺序
                     if (firstMove.getMoveOrder() < firstOrder) {
@@ -414,11 +415,11 @@ public class WIOptimizer {
                 }
             }
         }
-        if (WIDomain.NO.equals(wiData.getWiConfiguration().getMoveOrderExchange()) && frontFirstMove != null) {
+        if (WIDomain.NO.equals(wiData.getWiConfiguration().getMoveOrderExchange()) && frontFirstMove != null) { // 最后会找个顺序最靠前返回
             curCanWorkMoves.add(frontFirstMove);
         }
         //todo:怎么控制作业工艺的连续性
-        if (curCanWorkMoves.size() > 1) {
+        if (curCanWorkMoves.size() >= 2) {
             return limitTierHeight(curCanWorkMoves, wiData);
         }
         return curCanWorkMoves;
@@ -468,7 +469,7 @@ public class WIOptimizer {
             Integer valueTemp = 201; //交换后的箱子发生翻箱，不交换按关号发箱
             WIExchangeValue exchangeValue = new WIExchangeValue(valueTemp);
             exchangeValue.setDesc("交换后的箱子发生翻箱，没有选择交换的箱子发箱");
-            if (PublicMethod.canLoadState(wiCraneMove.getWorkStatus())) { //状态是S，可以装船状态
+            if (PublicMethod.canLoadState(wiCraneMove.getWorkStatus()) && !wiCraneMove.isOverrunCnt()) { //状态是S，可以装船状态；非超限箱
                 if ("1".equals(wiCraneMove.getWorkflow()) && wiCraneMove.getWiCraneContainerList().size() == 1) {
                     WICraneContainer wiCraneContainer = wiCraneMove.getWiCraneContainerList().get(0);
                     WIContainer wiContainer = wiCraneContainer.getExchangeContainer();

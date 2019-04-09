@@ -1,5 +1,7 @@
 package com.wids.model.wi;
 
+import com.wids.model.domain.WIDomain;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -41,6 +43,16 @@ public class WICraneMove {
     public WICraneMove() {
         wiCraneContainerList = new ArrayList<>();
         valueTemp = 300;
+    }
+
+    public boolean isOverrunCnt() {
+        for (WICraneContainer wiCraneContainer : wiCraneContainerList) {
+            WIContainer wiContainer = wiCraneContainer.getOriginalContainer();
+            if (WIDomain.OVERRUN_O.equals(wiContainer.getOverrunCd()) || WIDomain.OVERRUN_OW.equals(wiContainer.getOverrunCd())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public String getWorkBayKey() {

@@ -76,4 +76,7 @@ public final class WIDomain {
     public static final String LEFT = "LEFT";
 
     public static final String RIGHT = "RIGHT";
+
+    public static final String OVERRUN_O = "O"; // 超限箱
+    public static final String OVERRUN_OW = "OW"; // 超宽箱
 }

@@ -6,7 +6,7 @@ package com.wids.model.domain;
  */
 public class WIDefaultValue {
 
-    public static String wiVersion = "WI2.0.19.4.8";
+    public static String wiVersion = "WI2.0.19.5.14";
     public static boolean outputLogToConsole = false;
 
     public static Long intervalTime = 30L; //默认发送30分钟的指令

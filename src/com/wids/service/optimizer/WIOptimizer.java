@@ -466,7 +466,7 @@ public class WIOptimizer {
         //设置优先级：1、满足箱区出箱能力且不翻箱优先发箱（10）；刚回收没场箱位的箱子优先发箱（10）；不允许交换的箱子，按关号发箱（10）
         // 2、交换后，（20、21、22）；
         for (WICraneMove wiCraneMove : curCanWorkMoves) {
-            Integer valueTemp = 201; //交换后的箱子发生翻箱，不交换按关号发箱
+            int valueTemp = 201; //交换后的箱子发生翻箱，不交换按关号发箱
             WIExchangeValue exchangeValue = new WIExchangeValue(valueTemp);
             exchangeValue.setDesc("交换后的箱子发生翻箱，没有选择交换的箱子发箱");
             if (PublicMethod.canLoadState(wiCraneMove.getWorkStatus()) && !wiCraneMove.isOverrunCnt()) { //状态是S，可以装船状态；非超限箱
@@ -502,7 +502,7 @@ public class WIOptimizer {
                                         }
                                         wiCraneContainer.setExchangeContainerTemp(exCnt);
                                         exchangeValue.setCode(valueTemp);
-                                        exchangeValue.setDesc("找到适合交换的箱子(交换后箱子的翻箱量：" + String.valueOf(exOverNum) + ")");
+                                        exchangeValue.setDesc("找到适合交换的箱子(交换后箱子的翻箱量：" + exOverNum + ")");
                                     } else { //没有找到适合(满足参数/属性组/箱区能力)交换的箱子，按关号发箱
                                         valueTemp += sentWiNum;
                                         exchangeValue.setCode(valueTemp);
@@ -591,6 +591,10 @@ public class WIOptimizer {
                         }
                     }
                 }
+            } else {
+                valueTemp = 301;
+                exchangeValue.setCode(valueTemp);
+                exchangeValue.setDesc("超限O、超宽OW的箱子最后发箱");
             }
             wiCraneMove.setValueTemp(valueTemp);
             wiCraneMove.setWiExchangeValue(exchangeValue);

@@ -14,11 +14,11 @@ public class WIAreaAbility {
     private String areaNo;
     private Integer areaEfficiency; //箱区能力
     private Integer allTaskNum; //总共指令数目
-    private Integer curHourTaskNum; //当前一个小时需要发送的指令数目
-    private Integer curHour20TaskNum; //当前一个小时需要发送的20尺箱子数目
-    private Integer curMeanTaskNum; //当前一个小时所有箱区平均出箱能力
-    private Integer curHourSentNum; //当前一个小时发送的指令数目
-    private Integer curHourExchangeNum; //当前一个小时交换了的指令数目
+    private Integer curHourTaskNum;
+    private Integer curHour20TaskNum;
+    private Integer curMeanTaskNum;
+    private Integer curHourSentNum;
+    private Integer curHourExchangeNum;
 
     private List<WIContainer> wiContainerList;
     private Long curWorkTime;

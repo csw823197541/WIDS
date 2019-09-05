@@ -15,17 +15,17 @@ public class WICrane {
     private Date workStartTime; //桥机计划作业开始时间
     private Integer craneSeq; //桥机位置的顺序号，用于给桥机排先后顺序
 
-    private Date actualWorkST; //实际开工时间，即第一条指令的开始时间，取当前时间
+    private Date actualWorkST;
     private Long sentWiWorkTime; //已发送状态指令的作业耗时，毫秒ms
-    private Long remainWiWorkTime; //还可以发送多长时间的指令，即指令作业耗时，需要分析计算已发送的指令时间，毫秒ms
+    private Long remainWiWorkTime;
 
     private List<WIWorkBlock> wiWorkBlockList; //桥机作业块信息
-    private Long wiWorkTime; //桥机已经发送了多长时间的指令，发出一个指令增加一个时间，毫秒ms
+    private Long wiWorkTime;
 
-    private Boolean needReDoCwp; //是否需要重排CWP，true表示需要重排
-    private String reDoCwpReason; //重排CWP的解释说明
+    private Boolean needReDoCwp;
+    private String reDoCwpReason;
 
-    private long curExchangeTime; //桥机交换指令的时间，原则上交换一个小时的指令
+    private long curExchangeTime;
 
     public WICrane(String craneNo, String workStatus) {
         this.craneNo = craneNo;

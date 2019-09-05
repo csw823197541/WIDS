@@ -106,13 +106,11 @@ public class WIOptimizer {
         String ls = PublicMethod.getOddOrEvenBySeaOrLand(wiData.getVmSchedule().getPlanBerthDirect(), CWPDomain.ROW_SEQ_LAND_SEA);
         for (Long hatchId : hatchIdSet) {
             WIHatch wiHatch = new WIHatch(hatchId);
-            //作业顺序
             wiHatch.setAboveDiscRowNoSeqList(vesselDataMethod.getRowSeqListByHatchId(hatchId, CWPDomain.BOARD_ABOVE, ls));
             wiHatch.setBelowDiscRowNoSeqList(vesselDataMethod.getRowSeqListByHatchId(hatchId, CWPDomain.BOARD_BELOW, ls));
             wiHatch.setBelowLoadRowNoSeqList(vesselDataMethod.getRowSeqListByHatchId(hatchId, CWPDomain.BOARD_BELOW, sl));
             wiHatch.setAboveLoadRowNoSeqList(vesselDataMethod.getRowSeqListByHatchId(hatchId, CWPDomain.BOARD_ABOVE, sl));
-            //将装船move按槽存储
-            List<WICraneMove> wiCraneMoveList = wiData.getWaitWICraneMoveListByHatchId(hatchId); //整个舱待发送的指令
+            List<WICraneMove> wiCraneMoveList = wiData.getWaitWICraneMoveListByHatchId(hatchId);
 //            PublicMethod.sortWICraneMoveByMoveOrder(wiCraneMoveList);
             for (WICraneMove wiCraneMove : wiCraneMoveList) {
                 if (CWPDomain.DL_TYPE_DISC.equals(wiCraneMove.getLdFlag())) {
@@ -158,7 +156,6 @@ public class WIOptimizer {
             }
 //            curAreaWorkTime += 120000;
             curAreaWorkTime += minWorkTime;
-            //其他箱区时间设置成为当前时间
             for (Map.Entry<String, WIAreaAbility> entry : wiData.getAreaAbilityMap().entrySet()) {
                 if (entry.getValue().getCurWorkTime() < curAreaWorkTime) {
                     entry.getValue().setCurWorkTime(curAreaWorkTime);
@@ -179,11 +176,9 @@ public class WIOptimizer {
             if (wiCrane.getCurExchangeTime() >= firstTime + intervalTime) {
                 break;
             }
-            //判断桥机上一个指令还没有做完，此时不选择该桥机的指令交换
             if (wiCrane.getCurExchangeTime() > curAreaWorkTime) {
                 break;
             }
-            //当桥机已交换的指令时间正好是作业块结束时间，跳到下一个作业块发箱
 //            if (wiWorkBlock.getEstimateEndTime().getTime() <= wiCrane.getCurExchangeTime()) {
 //                continue;
 //            }
@@ -322,7 +317,6 @@ public class WIOptimizer {
                     if (wiAreaAbility != null) {
                         wiAreaAbility.setCurHourSentNum(wiAreaAbility.getCurHourSentNum() + 1);
                         wiCraneContainer.setOverCntNum(exchangeCnt.getOverCntNumTemp());
-                        //将发送的箱子放到已发队列中
                         long st = wiAreaAbility.getCurWorkTime();
                         exchangeCnt.setWorkingStartTime(new Date(st));
                         st += oneCntTime;
@@ -330,7 +324,6 @@ public class WIOptimizer {
                         wiAreaAbility.setCurWorkTime(st);
                         wiAreaAbility.getSentCntList().add(exchangeCnt);
                     }
-                    //保存交换的结果
                     if (wiAreaAbility != null) {
                         saveExchangeCntInfo(wiCraneContainer, wiData);
                     }
@@ -342,7 +335,6 @@ public class WIOptimizer {
         return wt;
     }
 
-    //------------------卸船策略方法---------------
 
     private List<WICraneMove> getCurCanDiscWorkMoves(WIData wiData, Integer bayNo, List<Integer> rowNoSeqList, Map<Integer, List<WICraneMove>> rowNoCraneMoveMap) {
         List<WICraneMove> wiCraneMoves = new ArrayList<>();
@@ -357,7 +349,6 @@ public class WIOptimizer {
                         frontFirstMove = firstMove;
                     }
                 } else {
-                    //可以交换顺序，根据策略卸船（默认按原始顺序卸船）
                     if (firstMove.getMoveOrder() < firstOrder) {
                         firstOrder = firstMove.getMoveOrder();
                         frontFirstMove = firstMove;
@@ -386,24 +377,20 @@ public class WIOptimizer {
             return curCanWorkMoves.get(0);
         } else {
             WICraneMove optimalMove;
-            //按关号排序策略
             PublicMethod.sortWICraneMoveByMoveOrder(curCanWorkMoves);
             optimalMove = curCanWorkMoves.get(0);
             return optimalMove;
         }
     }
 
-    //------------------装船策略方法---------------
 
     private List<WICraneMove> getBelowCurCanLoadWorkMoves(WIData wiData, Integer bayNo, List<Integer> rowNoSeqList, Map<Integer, List<WICraneMove>> rowNoCraneMoveMap) {
-        //通过策略控制返回当前可作业的位置，甲板下可作业的位置更多
         List<WICraneMove> curCanWorkMoves = new ArrayList<>();
         WICraneMove frontFirstMove = null;
         long firstOrder = Long.MAX_VALUE;
         for (int i = 0; i < rowNoSeqList.size(); i++) {
             Integer rowNo = rowNoSeqList.get(i);
             WICraneMove firstMove = getFirstMove(rowNo, bayNo, rowNoCraneMoveMap, CWPDomain.DL_TYPE_LOAD);
-            // 能作业、没有被锁住
             if (firstMove != null && PublicMethod.canLoadState(firstMove.getWorkStatus()) && !WIDomain.YES.equals(firstMove.getCwoManualWi())) {
                 if (WIDomain.NO.equals(wiData.getWiConfiguration().getMoveOrderExchange())) { //不允许交换顺序
                     if (firstMove.getMoveOrder() < firstOrder) {
@@ -415,10 +402,9 @@ public class WIOptimizer {
                 }
             }
         }
-        if (WIDomain.NO.equals(wiData.getWiConfiguration().getMoveOrderExchange()) && frontFirstMove != null) { // 最后会找个顺序最靠前返回
+        if (WIDomain.NO.equals(wiData.getWiConfiguration().getMoveOrderExchange()) && frontFirstMove != null) {
             curCanWorkMoves.add(frontFirstMove);
         }
-        //todo:怎么控制作业工艺的连续性
         if (curCanWorkMoves.size() >= 2) {
             return limitTierHeight(curCanWorkMoves, wiData);
         }
@@ -426,7 +412,6 @@ public class WIOptimizer {
     }
 
     private List<WICraneMove> getAboveCurCanLoadWorkMoves(WIData wiData, Integer bayNo, List<Integer> rowNoSeqList, Map<Integer, List<WICraneMove>> rowNoCraneMoveMap) {
-        //通过策略控制返回当前可作业的位置，甲板上可作业的位置要少些
         List<WICraneMove> curCanWorkMoves = new ArrayList<>();
         WICraneMove frontFirstMove = null;
         long firstOrder = Long.MAX_VALUE;
@@ -434,7 +419,7 @@ public class WIOptimizer {
             Integer rowNo = rowNoSeqList.get(i);
             WICraneMove firstMove = getFirstMove(rowNo, bayNo, rowNoCraneMoveMap, CWPDomain.DL_TYPE_LOAD);
             if (firstMove != null && PublicMethod.canLoadState(firstMove.getWorkStatus()) && !WIDomain.YES.equals(firstMove.getCwoManualWi())) {
-                if (WIDomain.NO.equals(wiData.getWiConfiguration().getMoveOrderExchange())) { //不允许交换顺序
+                if (WIDomain.NO.equals(wiData.getWiConfiguration().getMoveOrderExchange())) {
                     if (firstMove.getMoveOrder() < firstOrder) {
                         firstOrder = firstMove.getMoveOrder();
                         frontFirstMove = firstMove;
@@ -454,7 +439,6 @@ public class WIOptimizer {
         if (WIDomain.NO.equals(wiData.getWiConfiguration().getMoveOrderExchange()) && frontFirstMove != null) {
             curCanWorkMoves.add(frontFirstMove);
         }
-        //todo: 怎么控制20尺和40尺箱子交替发箱、怎么控制按舱盖板分档发箱???
         if (curCanWorkMoves.size() > 1) {
             return limitTierHeight(curCanWorkMoves, wiData);
         }
@@ -463,13 +447,11 @@ public class WIOptimizer {
 
     private WICraneMove findOptimalLoadMove(List<WICraneMove> curCanWorkMoves, WIData wiData) {
         PublicMethod.sortWICraneMoveByMoveOrder(curCanWorkMoves);
-        //设置优先级：1、满足箱区出箱能力且不翻箱优先发箱（10）；刚回收没场箱位的箱子优先发箱（10）；不允许交换的箱子，按关号发箱（10）
-        // 2、交换后，（20、21、22）；
         for (WICraneMove wiCraneMove : curCanWorkMoves) {
-            int valueTemp = 201; //交换后的箱子发生翻箱，不交换按关号发箱
+            int valueTemp = 201;
             WIExchangeValue exchangeValue = new WIExchangeValue(valueTemp);
             exchangeValue.setDesc("交换后的箱子发生翻箱，没有选择交换的箱子发箱");
-            if (PublicMethod.canLoadState(wiCraneMove.getWorkStatus()) && !wiCraneMove.isOverrunCnt()) { //状态是S，可以装船状态；非超限箱
+            if (PublicMethod.canLoadState(wiCraneMove.getWorkStatus()) && !wiCraneMove.isOverrunCnt()) {
                 if ("1".equals(wiCraneMove.getWorkflow()) && wiCraneMove.getWiCraneContainerList().size() == 1) {
                     WICraneContainer wiCraneContainer = wiCraneMove.getWiCraneContainerList().get(0);
                     WIContainer wiContainer = wiCraneContainer.getExchangeContainer();
@@ -480,7 +462,7 @@ public class WIOptimizer {
                             boolean needExchange = sentWiNum >= wiData.getWiConfiguration().getSendContainerNum();
                             int overCntNum = getOverCntNum(wiContainer, wiAreaAbility.getWiContainerList());
                             wiCraneContainer.setOriginalOverCntNum(overCntNum);
-                            if (!needExchange && overCntNum == 0) { //满足箱区能力，没有翻箱
+                            if (!needExchange && overCntNum == 0) {
                                 valueTemp = 10;
                                 exchangeValue.setCode(valueTemp);
                                 exchangeValue.setDesc("满足箱区出箱能力且不翻箱，优先被选中发箱");
@@ -503,23 +485,23 @@ public class WIOptimizer {
                                         wiCraneContainer.setExchangeContainerTemp(exCnt);
                                         exchangeValue.setCode(valueTemp);
                                         exchangeValue.setDesc("找到适合交换的箱子(交换后箱子的翻箱量：" + exOverNum + ")");
-                                    } else { //没有找到适合(满足参数/属性组/箱区能力)交换的箱子，按关号发箱
+                                    } else {
                                         valueTemp += sentWiNum;
                                         exchangeValue.setCode(valueTemp);
                                         exchangeValue.setDesc("没有找到适合交换的箱子(箱区任务：" + sentWiNum + ")，按关号发箱");
                                     }
-                                } else { //没找到满足出箱能力的箱区，按关号发箱
+                                } else {
                                     valueTemp += sentWiNum;
                                     exchangeValue.setCode(valueTemp);
                                     exchangeValue.setDesc("没找到满足出箱能力的箱区(箱区任务：" + sentWiNum + ")，按关号发箱");
                                 }
                             }
-                        } else { //一般都是AGV、ASC、RACK上没场箱位，刚回收的箱子
+                        } else {
                             valueTemp = 10;
                             exchangeValue.setCode(valueTemp);
                             exchangeValue.setDesc("没有场箱位的箱子，按关号发箱");
                         }
-                    } else { //不允许交换的箱子
+                    } else {
                         valueTemp = 10;
                         exchangeValue.setCode(valueTemp);
                         exchangeValue.setDesc("不允许交换的箱子，按关号发箱");
@@ -531,19 +513,19 @@ public class WIOptimizer {
                     WIContainer wiContainer2 = wiCraneContainer2.getExchangeContainer();
                     WIAreaAbility wiAreaAbility1 = wiData.getWIAreaAbilityByAreaNo(wiContainer1.getAreaNo());
                     WIAreaAbility wiAreaAbility2 = wiData.getWIAreaAbilityByAreaNo(wiContainer2.getAreaNo());
-                    if (wiAreaAbility1 != null && wiAreaAbility2 != null) { //一般都是AGV、ASC、RACK上没场箱位，刚回收的箱子
+                    if (wiAreaAbility1 != null && wiAreaAbility2 != null) {
                         int sentWiNum1 = wiAreaAbility1.getSentWiNumBy15Mis(curAreaWorkTime, wiData.getWiConfiguration().getSendIntervalTime());
                         int sentWiNum2 = wiAreaAbility2.getSentWiNumBy15Mis(curAreaWorkTime, wiData.getWiConfiguration().getSendIntervalTime());
                         boolean notExchange = notExchangeCnt(wiContainer1) || notExchangeCnt(wiContainer2);
-                        if (!notExchange) { //双箱吊可以交换
+                        if (!notExchange) {
                             List<WIAreaAbility> wiAreaAbilityList = new ArrayList<>();
-                            if (!wiContainer1.getAreaNo().equals(wiContainer2.getAreaNo())) { //拼箱
+                            if (!wiContainer1.getAreaNo().equals(wiContainer2.getAreaNo())) {
                                 if (sentWiNum1 < sentWiNum2) {
                                     wiAreaAbilityList.add(wiAreaAbility1);
                                 } else if (sentWiNum2 < sentWiNum1) {
                                     wiAreaAbilityList.add(wiAreaAbility2);
                                 } else {
-                                    if (sentWiNum1 == 0) { //箱区当前没有任务
+                                    if (sentWiNum1 == 0) {
                                         if (wiAreaAbility1.getCurHour20TaskNum() < wiAreaAbility2.getCurHour20TaskNum()) {
                                             wiAreaAbilityList.add(wiAreaAbility2);
                                         } else {
@@ -553,8 +535,8 @@ public class WIOptimizer {
                                         wiAreaAbilityList = findCurCanExchangeArea(wiData);
                                     }
                                 }
-                            } else { //不拼箱
-                                if (sentWiNum1 >= wiData.getWiConfiguration().getSendContainerNum()) {//箱区能力超过4交换
+                            } else {
+                                if (sentWiNum1 >= wiData.getWiConfiguration().getSendContainerNum()) {
                                     wiAreaAbilityList = findCurCanExchangeArea(wiData);
                                 }
                             }
@@ -564,7 +546,7 @@ public class WIOptimizer {
                                 exchangeValue.setCode(valueTemp);
                                 exchangeValue.setDesc("满足箱区出箱能力且不翻箱，优先被选中发箱");
                             } else {
-                                if (wiAreaAbilityList.size() > 0) { //交换双箱吊的箱子
+                                if (wiAreaAbilityList.size() > 0) {
                                     List<WIContainer> exchangeCntList = findOptimal20DoubleExchangeCntList(wiCraneContainer1, wiCraneContainer2, wiAreaAbilityList, wiData);
                                     if (exchangeCntList.size() == 2) {
                                         int overNum = exchangeCntList.get(0).getOverCntNumTemp() + exchangeCntList.get(1).getOverCntNumTemp();
@@ -573,12 +555,12 @@ public class WIOptimizer {
                                         wiCraneContainer2.setExchangeContainerTemp(exchangeCntList.get(1));
                                         exchangeValue.setCode(valueTemp);
                                         exchangeValue.setDesc("找到适合交换的箱子(交换后箱子的翻箱量：" + String.valueOf(overNum));
-                                    } else { //没有找到适合(满足参数/属性组/箱区能力)交换的箱子，按关号发箱
+                                    } else {
                                         valueTemp += sentWiNum1;
                                         exchangeValue.setCode(valueTemp);
                                         exchangeValue.setDesc("没有找到适合交换的箱子(箱区任务：" + sentWiNum1 + ")，按关号发箱");
                                     }
-                                } else { //没找到满足出箱能力的箱区，按关号发箱
+                                } else {
                                     valueTemp += sentWiNum1;
                                     exchangeValue.setCode(valueTemp);
                                     exchangeValue.setDesc("没找到满足出箱能力的箱区(箱区任务：" + sentWiNum1 + ")，按关号发箱");
@@ -610,7 +592,7 @@ public class WIOptimizer {
             }
         });
         WICraneMove optimalMove = curCanWorkMoves.get(0);
-        for (int i = 1; i < curCanWorkMoves.size(); i++) {//没选中的数据还原
+        for (int i = 1; i < curCanWorkMoves.size(); i++) {
             curCanWorkMoves.get(i).setValueTemp(null);
             curCanWorkMoves.get(i).setWiExchangeValue(null);
             for (WICraneContainer wiCraneContainer : curCanWorkMoves.get(i).getWiCraneContainerList()) {
@@ -620,7 +602,6 @@ public class WIOptimizer {
         return optimalMove;
     }
 
-    //------------------查找交换的箱子---------------
 
     private List<WIAreaAbility> findCurCanExchangeArea(WIData wiData) {
         List<WIAreaAbility> wiAreaAbilities = new ArrayList<>();
@@ -631,7 +612,6 @@ public class WIOptimizer {
                 }
             }
         }
-        //todo:选择一个当前指令任务最少，且总任务最多的箱区
 //        Collections.sort(wiAreaAbilities, new Comparator<WIAreaAbility>() {
 //            @Override
 //            public int compare(WIAreaAbility o1, WIAreaAbility o2) {
@@ -650,10 +630,10 @@ public class WIOptimizer {
     private List<WIContainer> findOptimalSingleExchangeCntList(WICraneContainer wiCraneContainer, List<WIAreaAbility> wiAreaAbilityList, WIData wiData) {
         List<WIContainer> wiContainers = new ArrayList<>();
         for (WIAreaAbility wiAreaAbility : wiAreaAbilityList) {
-            for (WIContainer cnt : wiAreaAbility.getUnSendCntList()) { //从未发送的箱子中挑选
-                if (cnt.getyLocation() != null) { //排除AGV、ASC、RACK上没场箱位，刚回收的箱子
+            for (WIContainer cnt : wiAreaAbility.getUnSendCntList()) {
+                if (cnt.getyLocation() != null) {
                     if (cnt.getSentSeq() == null && !cnt.getyLocation().equals(wiCraneContainer.getExchangeContainer().getyLocation())) {
-                        if (conformRules(wiCraneContainer, cnt, wiData)) { //满足规则
+                        if (conformRules(wiCraneContainer, cnt, wiData)) {
                             int overCntNum = getOverCntNum(cnt, wiAreaAbility.getWiContainerList());
                             cnt.setOverCntNumTemp(overCntNum);
                             wiContainers.add(cnt);
@@ -726,7 +706,6 @@ public class WIOptimizer {
         return wiContainerList;
     }
 
-    //------------------基础方法---------------
 
     private WICraneMove getFirstMove(Integer rowNo, Integer bayNo, Map<Integer, List<WICraneMove>> rowNoCraneMoveMap, String dlType) {
         List<WICraneMove> wiCraneMoveList = rowNoCraneMoveMap.get(rowNo);
@@ -776,7 +755,6 @@ public class WIOptimizer {
     }
 
     private boolean notExchangeCnt(WIContainer cnt) {
-        //危险品、冷藏箱、超限箱
         boolean overrunFlag = WIDomain.OVERRUN_O.equals(cnt.getOverrunCd()) || WIDomain.OVERRUN_OW.equals(cnt.getOverrunCd());
 //        boolean not1 = WIDomain.YES.equals(cnt.getDgCd()) || WIDomain.YES.equals(cnt.getRfFlag());
         return WIDomain.NO.equals(cnt.getCwoManualLocation()) || overrunFlag;
@@ -795,14 +773,14 @@ public class WIOptimizer {
         if (WIDomain.YES.equals(wiConfiguration.getDeckAndHatchExchange())) {
             positionEx = true;
         }
-        if (vmPosition.getTierNo() > 49) { //甲板上
+        if (vmPosition.getTierNo() > 49) {
             if (WIDomain.YES.equals(wiConfiguration.getDeckRowExchange()) && vmPositionEx.getTierNo() > 49 && vmPositionEx.getRowNo().equals(vmPosition.getRowNo())) {
                 positionEx = true;
             }
             if (WIDomain.YES.equals(wiConfiguration.getDeckBayExchange()) && vmPositionEx.getTierNo() > 49) {
                 positionEx = true;
             }
-        } else { //甲板下
+        } else {
             if (WIDomain.YES.equals(wiConfiguration.getHatchRowExchange()) && vmPositionEx.getTierNo() < 49 && vmPositionEx.getRowNo().equals(vmPosition.getRowNo())) {
                 positionEx = true;
             }
@@ -811,11 +789,10 @@ public class WIOptimizer {
             }
         }
         if (WIDomain.YES.equals(wiCraneContainer.getExchangeContainer().getEfFlag()) && WIDomain.YES.equals(cnt.getEfFlag())) {
-            if (WIDomain.YES.equals(wiConfiguration.getEmptyCntExchange())) { //允许空箱交换
+            if (WIDomain.YES.equals(wiConfiguration.getEmptyCntExchange())) {
                 positionEx = true;
             }
         }
-        //尺寸、箱型、目的港、高平
         if (!notExchangeCnt(cnt) && positionEx) {
             WIContainer wiContainer = wiCraneContainer.getExchangeContainer();
             if (wiContainer.getSize().equals(cnt.getSize())) {
@@ -875,7 +852,6 @@ public class WIOptimizer {
                 count += i;
                 break;
             }
-            //去除已经发送了的箱子
             if (PublicMethod.isSentStatus(wiContainer.getWorkStatus())
                     || (wiContainer.getSentSeq() != null && wiContainer.getSentSeq() < WIDefaultValue.sentSeq)) {
                 count -= 1;

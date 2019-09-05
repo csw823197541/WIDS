@@ -49,13 +49,13 @@ public class WIDSProcess {
     }
 
     private void analyzeCraneWithSentWICraneMove(WIData wiData) {
-        long intervalTime = wiData.getWiConfiguration().getIntervalTime() * 60000;//毫秒，ms
+        long intervalTime = wiData.getWiConfiguration().getIntervalTime() * 60000;
         logger.logInfo("分析当前时刻，桥机后(" + intervalTime / 60000 + ")分钟中该发送哪些指令...");
         List<WICrane> wiCraneList = wiData.getAllWICraneList();
         for (WICrane wiCrane : wiCraneList) {
             String craneNo = wiCrane.getCraneNo();
             List<WICraneMove> wiCraneMoveList = wiData.getSentWICraneMoveListByCraneNo(craneNo);
-            long sentWiWorkTime = 0; //已经发送的指令作业耗时，ms
+            long sentWiWorkTime = 0;
             for (WICraneMove wiCraneMove : wiCraneMoveList) {
                 long workTime = wiCraneMove.getCntWorkTime() * 1000;
                 sentWiWorkTime += workTime;
@@ -76,11 +76,11 @@ public class WIDSProcess {
         for (Long hatchId : hatchIdList) {
             List<WIWorkBlock> wiWorkBlockList = wiData.getWIWorkBlockListByHatchId(hatchId);
             PublicMethod.sortWIWorkBlockByHatchSeq(wiWorkBlockList);
-            List<WICraneMove> waitWICraneMoveList = wiData.getWaitWICraneMoveListByHatchId(hatchId); //该舱待发指令
-            List<WICraneMove> sentWICraneMoveLIst = wiData.getSentWICraneMoveListByHatchId(hatchId); //该舱已发指令（队列、作业中）
+            List<WICraneMove> waitWICraneMoveList = wiData.getWaitWICraneMoveListByHatchId(hatchId);
+            List<WICraneMove> sentWICraneMoveLIst = wiData.getSentWICraneMoveListByHatchId(hatchId);
             PublicMethod.sortWICraneMoveByMoveOrder(waitWICraneMoveList);
             PublicMethod.sortWICraneMoveByMoveOrder(sentWICraneMoveLIst);
-            int n = 0, m = 0; //依次给这个舱内剩余的指令进行绑定
+            int n = 0, m = 0;
             for (WIWorkBlock wiWorkBlock : wiWorkBlockList) { //TODO：该方法需要给出正确舱块和舱序
                 try {
                     long remainAmount = wiWorkBlock.getRemainAmount();
@@ -95,12 +95,11 @@ public class WIDSProcess {
                             if (wiCraneMove.getWorkBayNo().equals(Integer.valueOf(wiWorkBlock.getBayNo()))) {
                                 count += 1;
                                 wiWorkBlock.getWiCraneMoveList().add(wiCraneMove);
-                                wiCraneMove.setSelectedWorkBlock(wiWorkBlock.getBlockKey()); //该关箱子已被该作业块选中
+                                wiCraneMove.setSelectedWorkBlock(wiWorkBlock.getBlockKey());
                                 n = i + 1;
                             }
                         }
                     }
-                    //绑定已发(队列、作业)指令给作业块，完成状态的指令不考虑
                     int j = m;
                     for (; j < sentWICraneMoveLIst.size(); j++) {
                         WICraneMove wiCraneMove = sentWICraneMoveLIst.get(j);
@@ -109,7 +108,7 @@ public class WIDSProcess {
                             if (craneNo != null) {
                                 if (craneNo.equals(wiWorkBlock.getCraneNo()) && wiCraneMove.getWorkBayNo().equals(Integer.valueOf(wiWorkBlock.getBayNo()))) {
                                     wiWorkBlock.getWiCraneMoveList().add(wiCraneMove);
-                                    wiCraneMove.setSelectedWorkBlock(wiWorkBlock.getBlockKey()); //该关箱子已被该作业块选中
+                                    wiCraneMove.setSelectedWorkBlock(wiWorkBlock.getBlockKey());
                                     m = j + 1;
                                 }
                             }
@@ -121,7 +120,6 @@ public class WIDSProcess {
                 }
             }
 
-            //统计箱区指令数目
             WIAreaAbility wiAreaAbilityTemp;
             WIContainer wiContainerTemp;
             List<WICraneMove> wiCraneMoveList = new ArrayList<>();
@@ -144,7 +142,7 @@ public class WIDSProcess {
                                     wiData.addWIAreaAbility(wiAreaAbility);
                                 }
                             } else if (PublicMethod.isSentStatus(wiContainerTemp.getWorkStatus()) &&
-                                    PublicMethod.areaMoveStage(wiContainerTemp.getMoveStage())) { //已发送，箱子还在yard里面
+                                    PublicMethod.areaMoveStage(wiContainerTemp.getMoveStage())) {
                                 if (wiAreaAbilityTemp != null) {
                                     wiAreaAbilityTemp.setAllTaskNum(wiAreaAbilityTemp.getAllTaskNum() + 1);
                                     wiAreaAbilityTemp.getSentCntList().add(wiContainerTemp);
@@ -169,13 +167,11 @@ public class WIDSProcess {
             List<WIWorkBlock> wiWorkBlockList = wiData.getWIWorkBlockListByCraneNo(craneNo);
             PublicMethod.sortWIWorkBlockByCraneSeq(wiWorkBlockList);
             wiCrane.setWiWorkBlockList(wiWorkBlockList);
-            //判断作业块的量是否与实际指令数目符合
             for (WIWorkBlock wiWorkBlock : wiWorkBlockList) {
                 if (time > wiData.getWiConfiguration().getIntervalTime() * 120000) {
                     break;
                 }
                 time += wiWorkBlock.getBlockWorkTime();
-                //可作业的指令数目（剔除装船状态为P的指令）与 作业块剩余需要发送的指令数目相同
                 long num = 0;
                 for (WICraneMove wiCraneMove : wiWorkBlock.getWiCraneMoveList()) {
                     if (CWPDomain.DL_TYPE_LOAD.equals(wiCraneMove.getLdFlag()) && PublicMethod.canLoadState(wiCraneMove.getWorkStatus())) {
@@ -223,13 +219,13 @@ public class WIDSProcess {
             try {
                 if (wiCrane.craneCanWork()) {
                     StringBuilder lockWiStr = new StringBuilder("");
-                    long craneRemainWorkTime = wiCrane.getRemainWiWorkTime() * t; //桥机能容纳多长时间的指令
+                    long craneRemainWorkTime = wiCrane.getRemainWiWorkTime() * t;
                     long workTime = 0;
                     List<WIWorkBlock> wiWorkBlockList = wiCrane.getWiWorkBlockList();
                     F:
                     for (WIWorkBlock wiWorkBlock : wiWorkBlockList) {
                         long st = wiWorkBlock.getSentWIStartTime().getTime();
-                        if (wiWorkBlock.getEstimateStartTime().getTime() > firstTime + intervalTime) { //作业块的开始时间已经超过了要求发送指令数目
+                        if (wiWorkBlock.getEstimateStartTime().getTime() > firstTime + intervalTime) {
                             if (workTime <= craneRemainWorkTime) {
                                 blockMessage.append("桥机(craneNo:").append(wiWorkBlock.getCraneNo()).append(")作业倍位(bayNo:").append(wiWorkBlock.getBayNo()).append(")的作业时间在(").append(intervalTime / 60000).append(")分钟以后，暂时无法提前发送后一个作业块的指令，请检查作业块");
                                 wiWorkBlock.setBlockMessage(blockMessage.toString());
@@ -248,15 +244,14 @@ public class WIDSProcess {
                                         if (workTime >= craneRemainWorkTime) {
                                             break F;
                                         }
-                                        //判断指令是否可以作业，即验证发出去指令的合理性
                                         List<WICraneMove> waitToSendMoveList = wiData.getWICraneMoveListFromWaitToSendMap(craneNo);
-                                        if (!PublicMethod.isSelected(wiCraneMove, waitToSendMoveList)) { //避免指令重复发送
+                                        if (!PublicMethod.isSelected(wiCraneMove, waitToSendMoveList)) {
                                             wiCraneMove.setWorkingStartTime(new Date(st));
                                             st += wiCraneMove.getCntWorkTime() * 1000;
                                             wiCraneMove.setWorkingEndTime(new Date(st));
-                                            wiCraneMove.setCraneNo(craneNo); //设置桥机号
+                                            wiCraneMove.setCraneNo(craneNo);
                                             wiData.addWICraneMoveToWaitToSendMap(wiCraneMove);
-                                            workTime += wiCraneMove.getCntWorkTime() * 1000; //ms
+                                            workTime += wiCraneMove.getCntWorkTime() * 1000;
                                         }
                                     }
                                 } else {
@@ -304,7 +299,6 @@ public class WIDSProcess {
 
         GenerateResultMethod.generateWorkBlock(wiData.getAllWIWorkBlockList(), wiData.getSmartCwpValidatorResults().getSmartReCwpBlockInfoList());
 
-        //判断是否产生重点路、或者触发阈值，反馈需要重排CWP的提示信息
         CwpValidator.validateKeyRoadAndSchedule(wiData);
 
         GenerateResultMethod.generateCwpValidateResult(wiData, wiData.getSmartCwpValidatorResults().getSmartReCwpValidatorInfoList());

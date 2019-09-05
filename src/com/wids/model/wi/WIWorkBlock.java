@@ -30,13 +30,13 @@ public class WIWorkBlock {
     private Long sentAmount; //已发送的Move数量
     private Long remainAmount; //作业块剩余作业量
 
-    private Date sentWIStartTime; //作业块（包含队列、作业、剩余指令）的开始时间
-    private Date estimateStartTime; //根据实际时间估计出来的作业块开始时间，剩余指令开始作业的时间
-    private Date estimateEndTime; //根据实际时间估计出来的作业块结束时间
-    private Long exCntTime; //作业块交换指令的时间；
+    private Date sentWIStartTime;
+    private Date estimateStartTime;
+    private Date estimateEndTime;
+    private Long exCntTime;
 
-    private String deleteFlag; //删除标记，当传入作业块相应倍位m没有待作业的指令时，作业块标记为"Y"，否则为null或者为"N"
-    private String blockMessage; //作业块信息，主要是当作业量与实际指令数目不符合的时候，给出提示信息
+    private String deleteFlag;
+    private String blockMessage;
 
     private List<WICraneMove> wiCraneMoveList; //该作业块涉及到的所有作业的指令
 

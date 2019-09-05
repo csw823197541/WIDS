@@ -20,7 +20,7 @@ public class WICraneMove {
 
     private Long moveOrder; //桥机作业顺序号
     private String workflow; //作业工艺
-    private String workStatus; //指令状态:发送A（队列中）; 完成C,RC; 作业中W; 未发送Y,S,P; 退卸或退装R
+    private String workStatus;
     private Long cntWorkTime; //作业时间，秒s
 
     private String craneNo; //桥机号
@@ -30,10 +30,10 @@ public class WICraneMove {
     private Date workingStartTime; //计划开始时间
     private Date workingEndTime; //计划结束时间
 
-    private String selectedWorkBlock; //发送给哪部桥机作业
-    private Long carryOrder; //装车次序
-    private String cwoManualWi; //人工锁定的船箱位，发箱时不能作业的箱子，CWP计划排到最后面
-    private Long sentSeq; //交换后发送指令的作业顺序
+    private String selectedWorkBlock;
+    private Long carryOrder;
+    private String cwoManualWi;
+    private Long sentSeq;
 
     private Integer valueTemp;
     private WIExchangeValue wiExchangeValue; //交换规则与原因

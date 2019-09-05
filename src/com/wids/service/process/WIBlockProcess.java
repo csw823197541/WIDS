@@ -188,8 +188,19 @@ public class WIBlockProcess {
                                 moveWIWorkBlockTime(WIDomain.SELF, addTimeC, wiWorkBlock, wiData);
                             }
                         } else {
-                            if (wiWorkBlock.getBlockWorkTime() <= wiWorkBlockRight.getBlockWorkTime()) {
+//                            if (wiWorkBlock.getBlockWorkTime() <= wiWorkBlockRight.getBlockWorkTime()) {
+//                                moveWIWorkBlockTime(WIDomain.SELF, addTimeR, wiWorkBlockRight, wiData);
+//                            } else {
+//                                moveWIWorkBlockTime(WIDomain.SELF, addTimeC, wiWorkBlock, wiData);
+//                            }
+                            if (wiWorkBlock.getWorkingStartTime().compareTo(wiWorkBlockRight.getWorkingStartTime()) < 0) {
                                 moveWIWorkBlockTime(WIDomain.SELF, addTimeR, wiWorkBlockRight, wiData);
+                            } else if (wiWorkBlock.getWorkingStartTime().compareTo(wiWorkBlockRight.getWorkingStartTime()) == 0){
+                                if (wiWorkBlock.getBlockWorkTime() <= wiWorkBlockRight.getBlockWorkTime()) {
+                                    moveWIWorkBlockTime(WIDomain.SELF, addTimeR, wiWorkBlockRight, wiData);
+                                } else {
+                                    moveWIWorkBlockTime(WIDomain.SELF, addTimeC, wiWorkBlock, wiData);
+                                }
                             } else {
                                 moveWIWorkBlockTime(WIDomain.SELF, addTimeC, wiWorkBlock, wiData);
                             }
